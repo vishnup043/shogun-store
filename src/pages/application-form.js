@@ -9,6 +9,8 @@ import "swiper/css/navigation";
 import "swiper/css/pagination";
 import { useForm } from "react-hook-form";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import ApplicationService from "@services/applicationService";
+import axios from 'axios';
 
 const s3Config = {
 	region: process.env.NEXT_PUBLIC_AWS_REGION,
@@ -23,6 +25,9 @@ const OrderNow = () => {
 	const [files, setFiles] = useState([]);
 	const [uploadedUrls, setUploadedUrls] = useState([]);
 	const [uploading, setUploading] = useState(false);
+	const [submitting, setSubmitting] = useState(false);
+	const [error, setError] = useState('');
+	const [successMessage, setSuccessMessage] = useState('');
 	const fileRef = useRef(null);
 
 	const {
@@ -82,19 +87,37 @@ const OrderNow = () => {
 
 	const onSubmitForm = async (data) => {
 		setUploading(true);
+		setSubmitting(true);
+		setError('');
+		setSuccessMessage('');
 		try {
 			let urls = [];
 			if (files.length > 0) {
 				urls = await Promise.all(files.map(uploadSingleFileToS3));
 				setUploadedUrls(urls);
 			}
-			// Here you can send the form data and uploaded file URLs to your backend if needed
-			alert("Form submitted successfully!");
+
+			const applicationData = {
+				...data,
+				documentUrls: urls,
+				termsAgreed: data.agree,
+				endorsed: data.endorse
+			};
+
+			const response = await ApplicationService.createApplication(applicationData);
+			
+			if (response.success) {
+				setSuccessMessage('Application submitted successfully! We will review your application and get back to you soon.');
+			} else {
+				setError(response.message || 'Failed to submit application. Please try again.');
+			}
 		} catch (err) {
-			console.error("Error uploading files:", err);
-			alert("Error uploading files. Please try again.");
+			console.error("Error submitting application:", err);
+			setError(err.message || 'Error submitting application. Please try again.');
+		} finally {
+			setUploading(false);
+			setSubmitting(false);
 		}
-		setUploading(false);
 	};
 
 	return (
@@ -389,13 +412,23 @@ const OrderNow = () => {
 								/>
 							</div>
 						</div>
+						{error && (
+							<div className="mb-4 text-red-600 text-center">{error}</div>
+						)}
+						{successMessage && (
+							<div className="mb-4 text-green-600 text-center">{successMessage}</div>
+						)}
 						<div className="flex justify-center py-12 gap-4">
 							<input onChange={handleFileChange} ref={fileRef} type="file" className="hidden" multiple />
 							<button type="button" onClick={onClickUpload} className="text-white bg-darkgreen2 text-uppercase 2xl:text-2xl xl:text-lg px-6 rounded-3xl">
 								<p>Upload Documents</p>
 							</button>
-							<button type="submit" disabled={uploading} className="text-white bg-darkgreen2 text-uppercase 2xl:text-2xl xl:text-lg px-6 rounded-3xl">
-								<p>{uploading ? "Requesting..." : "Request"}</p>
+							<button 
+								type="submit" 
+								disabled={uploading || submitting} 
+								className="text-white bg-darkgreen2 text-uppercase 2xl:text-2xl xl:text-lg px-6 rounded-3xl disabled:opacity-50"
+							>
+								<p>{submitting ? "Submitting..." : "Request"}</p>
 							</button>
 						</div>
 						<div className="flex flex-wrap gap-4">
