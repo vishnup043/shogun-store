@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import ApplicationService from '@services/applicationService';
+import ApplicationService from '@services/ApplicationService';
 import { useRouter } from 'next/router';
 
 const ApplicationsAdmin = () => {

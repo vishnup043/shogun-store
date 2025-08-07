@@ -1,16 +1,11 @@
-import { useRef, useState } from "react";
-import Image from "next/image";
+import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import Navbar from "@layout/navbar/Navbar";
-import Link from "next/link";
-import { Swiper, SwiperSlide } from "swiper/react";
-import { Navigation } from "swiper/modules";
+import ApplicationService from "@services/ApplicationService";
+import { useRef, useState } from "react";
+import { useForm } from "react-hook-form";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
-import { useForm } from "react-hook-form";
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
-import ApplicationService from "@services/applicationService";
-import axios from 'axios';
 
 const s3Config = {
 	region: process.env.NEXT_PUBLIC_AWS_REGION,

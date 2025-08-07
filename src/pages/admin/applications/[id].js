@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import ApplicationService from '@services/applicationService';
+import ApplicationService from '@services/ApplicationService';
 import Link from 'next/link';
 
 const ApplicationDetails = () => {
